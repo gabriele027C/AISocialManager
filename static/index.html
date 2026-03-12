@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Storylab.io</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0f0f0f;
+            --surface: #1a1a2e;
+            --surface-hover: #22223a;
+            --accent: #6c63ff;
+            --accent-hover: #5a52e0;
+            --green: #2ecc71;
+            --red: #e74c3c;
+            --yellow: #f1c40f;
+            --orange: #e67e22;
+            --text: #e0e0e0;
+            --text-muted: #888;
+            --border: #2a2a3e;
+            --radius: 12px;
+            --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        header {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(15,15,15,.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 1.5rem;
+        }
+        .header-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 64px;
+        }
+        .logo { font-size: 1.4rem; font-weight: 700; color: var(--accent); letter-spacing: -0.5px; }
+        .logo span { color: var(--text); }
+        nav { display: flex; gap: .25rem; }
+        nav button {
+            background: none; border: none; color: var(--text-muted);
+            padding: .5rem 1rem; border-radius: 8px; cursor: pointer;
+            font-size: .9rem; transition: all .2s;
+        }
+        nav button:hover { color: var(--text); background: var(--surface); }
+        nav button.active { color: var(--accent); background: var(--surface); }
+
+        main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+        section { display: none; }
+        section.active { display: block; }
+
+        h2 { font-size: 1.5rem; margin-bottom: 1.5rem; font-weight: 600; }
+
+        .stats-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem; margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: var(--surface); border-radius: var(--radius);
+            padding: 1.5rem; text-align: center; border: 1px solid var(--border);
+            transition: transform .2s;
+        }
+        .stat-card:hover { transform: translateY(-2px); }
+        .stat-card .icon { font-size: 2rem; margin-bottom: .5rem; }
+        .stat-card .value { font-size: 2.2rem; font-weight: 700; color: var(--accent); }
+        .stat-card .label { color: var(--text-muted); font-size: .85rem; margin-top: .25rem; }
+
+        .form-card {
+            background: var(--surface); border-radius: var(--radius);
+            padding: 2rem; border: 1px solid var(--border); max-width: 600px;
+        }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-group label { display: block; margin-bottom: .5rem; color: var(--text-muted); font-size: .9rem; }
+        .form-group input[type="number"],
+        .form-group input[type="text"],
+        .form-group select {
+            width: 100%; padding: .75rem 1rem;
+            background: var(--bg); color: var(--text); border: 1px solid var(--border);
+            border-radius: 8px; font-size: 1rem; outline: none;
+            transition: border-color .2s;
+        }
+        .form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+
+        .checkbox-group { display: flex; gap: 1.5rem; align-items: center; }
+        .checkbox-group label {
+            display: flex; align-items: center; gap: .5rem;
+            cursor: pointer; color: var(--text); font-size: .95rem;
+        }
+        .checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 18px; height: 18px; }
+
+        .btn {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .75rem 1.75rem; border-radius: 8px; font-size: 1rem;
+            font-weight: 600; border: none; cursor: pointer; transition: all .2s;
+        }
+        .btn-primary { background: var(--accent); color: #fff; }
+        .btn-primary:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+        .btn-green { background: var(--green); color: #fff; }
+        .btn-green:hover { background: #27ae60; }
+        .btn-orange { background: var(--orange); color: #fff; }
+        .btn-orange:hover { background: #d35400; }
+        .btn-red { background: var(--red); color: #fff; }
+        .btn-red:hover { background: #c0392b; }
+        .btn-sm { padding: .4rem 1rem; font-size: .85rem; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+        .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+        .posts-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+        .post-card {
+            background: var(--surface); border-radius: var(--radius);
+            border: 1px solid var(--border); overflow: hidden;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .post-card:hover { transform: translateY(-3px); box-shadow: 0 8px 30px rgba(108,99,255,.1); }
+
+        .post-preview {
+            position: relative; width: 100%; height: 0; padding-bottom: 100%;
+            overflow: hidden; border-bottom: 1px solid var(--border);
+            background: #111;
+        }
+        .post-preview .bg-img {
+            position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+            z-index: 0;
+        }
+        .post-preview .slide-track {
+            position: absolute; inset: 0; display: flex;
+            overflow-x: auto; overflow-y: hidden;
+            scroll-snap-type: x mandatory; scrollbar-width: none; z-index: 1;
+        }
+        .post-preview .slide-track::-webkit-scrollbar { display: none; }
+        .post-preview .slide {
+            flex: 0 0 100%; width: 100%; min-height: 100%;
+            scroll-snap-align: start;
+            display: flex; align-items: center; justify-content: center;
+            padding: 2.5rem 2rem; position: relative;
+        }
+        .post-preview .slide::before {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.65) 50%, rgba(0,0,0,.45) 100%);
+            z-index: 0;
+        }
+        .post-preview .slide-text {
+            position: relative; z-index: 1;
+            color: #fff; font-size: 1.05rem; line-height: 1.7;
+            text-align: center; white-space: pre-line;
+            text-shadow: 0 2px 8px rgba(0,0,0,.8);
+            font-weight: 500; letter-spacing: .01em;
+            max-width: 90%;
+        }
+        .post-preview .slide-nav {
+            position: absolute; bottom: 14px; left: 50%;
+            transform: translateX(-50%); z-index: 4;
+            display: flex; gap: 7px; align-items: center;
+        }
+        .post-preview .dot {
+            width: 9px; height: 9px; border-radius: 50%;
+            background: rgba(255,255,255,.35); cursor: pointer;
+            transition: all .25s; border: 1.5px solid rgba(255,255,255,.5);
+        }
+        .post-preview .dot.active { background: #fff; transform: scale(1.2); border-color: #fff; }
+        .post-preview .slide-arrow {
+            position: absolute; top: 50%; transform: translateY(-50%);
+            z-index: 5; background: rgba(0,0,0,.35); border: none;
+            color: #fff; width: 36px; height: 36px; border-radius: 50%;
+            cursor: pointer; font-size: 1.3rem; display: flex;
+            align-items: center; justify-content: center;
+            transition: background .2s; backdrop-filter: blur(6px);
+        }
+        .post-preview .slide-arrow:hover { background: rgba(0,0,0,.6); }
+        .post-preview .arrow-left { left: 10px; }
+        .post-preview .arrow-right { right: 10px; }
+        .post-preview .page-label {
+            position: absolute; top: 12px; right: 14px; z-index: 4;
+            background: rgba(0,0,0,.55); color: #fff; font-size: .75rem;
+            padding: .25rem .6rem; border-radius: 12px;
+            font-weight: 600; backdrop-filter: blur(6px);
+            letter-spacing: .03em;
+        }
+
+        .post-card .card-body { padding: 1.25rem; }
+        .post-card .hashtags { font-size: .8rem; color: var(--accent); margin-bottom: 1rem; word-break: break-all; }
+        .post-card .meta-row {
+            display: flex; justify-content: space-between; align-items: center;
+            font-size: .8rem; color: var(--text-muted); margin-bottom: 1rem;
+            flex-wrap: wrap; gap: .4rem;
+        }
+        .badge {
+            display: inline-block; padding: .2rem .6rem; border-radius: 4px;
+            font-size: .75rem; font-weight: 600; text-transform: uppercase;
+        }
+        .badge-draft { background: #333; color: var(--yellow); }
+        .badge-approved { background: #1a3a1a; color: var(--green); }
+        .badge-scheduled { background: #1a1a3a; color: var(--accent); }
+        .badge-published { background: #1a3a1a; color: var(--green); }
+        .badge-failed { background: #3a1a1a; color: var(--red); }
+
+        .card-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+
+        .schedule-row {
+            display: flex; gap: .5rem; align-items: center; margin-bottom: .75rem;
+        }
+        .schedule-row input { flex: 1; }
+
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { text-align: left; padding: .75rem 1rem; border-bottom: 1px solid var(--border); font-size: .9rem; }
+        th { color: var(--text-muted); font-weight: 600; font-size: .8rem; text-transform: uppercase; letter-spacing: .5px; }
+        tr:hover td { background: var(--surface-hover); }
+        td img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; }
+
+        .filters { display: flex; gap: .75rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .filters select {
+            padding: .5rem 1rem; background: var(--surface); color: var(--text);
+            border: 1px solid var(--border); border-radius: 8px; font-size: .85rem;
+        }
+
+        .spinner {
+            display: inline-block; width: 20px; height: 20px;
+            border: 3px solid var(--border); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,.6);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 1000; gap: 1rem;
+        }
+        .loading-overlay .spinner { width: 48px; height: 48px; border-width: 4px; }
+        .loading-overlay p { color: var(--text); font-size: 1.1rem; }
+
+        #toast-container {
+            position: fixed; top: 80px; right: 1.5rem; z-index: 999;
+            display: flex; flex-direction: column; gap: .5rem;
+        }
+        .toast {
+            padding: .75rem 1.25rem; border-radius: 8px;
+            font-size: .9rem; animation: slideIn .3s ease;
+            max-width: 380px; word-break: break-word;
+        }
+        .toast-success { background: #1a3a1a; color: var(--green); border: 1px solid var(--green); }
+        .toast-error { background: #3a1a1a; color: var(--red); border: 1px solid var(--red); }
+        .toast-info { background: #1a1a3a; color: var(--accent); border: 1px solid var(--accent); }
+        @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+        .empty-state { text-align: center; padding: 3rem; color: var(--text-muted); }
+        .empty-state .icon { font-size: 3rem; margin-bottom: 1rem; }
+
+        @media (max-width: 768px) {
+            .header-inner { flex-direction: column; height: auto; padding: .75rem 0; gap: .5rem; }
+            nav { flex-wrap: wrap; justify-content: center; }
+            nav button { padding: .4rem .75rem; font-size: .8rem; }
+            .posts-grid { grid-template-columns: 1fr; }
+            .post-preview .slide { padding: 1.5rem 1.2rem; }
+            .post-preview .slide-text { font-size: .92rem; line-height: 1.6; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="header-inner">
+        <div class="logo">Storylab<span>.io</span></div>
+        <nav>
+            <button class="active" onclick="showSection('dashboard')">📊 Dashboard</button>
+            <button onclick="showSection('create')">✨ Crea Post</button>
+            <button onclick="showSection('preview')">👁️ Anteprima</button>
+            <button onclick="showSection('history')">📜 Storico</button>
+        </nav>
+    </div>
+</header>
+
+<div id="toast-container"></div>
+
+<main>
+    <!-- ============ DASHBOARD ============ -->
+    <section id="sec-dashboard" class="active">
+        <h2>Dashboard</h2>
+        <div class="stats-grid">
+            <div class="stat-card"><div class="icon">📝</div><div class="value" id="count-draft">0</div><div class="label">Bozze</div></div>
+            <div class="stat-card"><div class="icon">✅</div><div class="value" id="count-approved">0</div><div class="label">Approvati</div></div>
+            <div class="stat-card"><div class="icon">📅</div><div class="value" id="count-scheduled">0</div><div class="label">Programmati</div></div>
+            <div class="stat-card"><div class="icon">🚀</div><div class="value" id="count-published">0</div><div class="label">Pubblicati</div></div>
+        </div>
+        <h3 style="margin-bottom:1rem;font-size:1.1rem;">Prossimi post programmati</h3>
+        <div id="upcoming-list" class="posts-grid"></div>
+    </section>
+
+    <!-- ============ CREATE ============ -->
+    <section id="sec-create">
+        <h2>Crea Nuovi Post</h2>
+        <div class="form-card">
+            <div class="form-group">
+                <label>Tema</label>
+                <select id="gen-theme"></select>
+            </div>
+            <div class="form-group">
+                <label>Quanti post vuoi generare?</label>
+                <input type="number" id="gen-count" min="1" max="10" value="1">
+            </div>
+            <div class="form-group">
+                <label>Piattaforme</label>
+                <div class="checkbox-group">
+                    <label><input type="checkbox" id="plat-ig" checked> Instagram</label>
+                    <label><input type="checkbox" id="plat-fb" checked> Facebook</label>
+                </div>
+            </div>
+            <button class="btn btn-primary" id="btn-generate" onclick="generatePosts()">
+                ✨ Genera Post
+            </button>
+        </div>
+    </section>
+
+    <!-- ============ PREVIEW ============ -->
+    <section id="sec-preview">
+        <h2>Anteprima & Approvazione</h2>
+        <div class="filters">
+            <select id="filter-preview-status" onchange="loadPreview()">
+                <option value="">Tutti</option>
+                <option value="draft" selected>Bozze</option>
+                <option value="approved">Approvati</option>
+                <option value="scheduled">Programmati</option>
+            </select>
+        </div>
+        <div id="preview-grid" class="posts-grid"></div>
+    </section>
+
+    <!-- ============ HISTORY ============ -->
+    <section id="sec-history">
+        <h2>Storico Pubblicazioni</h2>
+        <div class="filters">
+            <select id="filter-hist-status" onchange="loadHistory()">
+                <option value="">Tutti</option>
+                <option value="published">Pubblicati</option>
+                <option value="failed">Falliti</option>
+            </select>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead><tr><th>Data</th><th>Immagine</th><th>Caption</th><th>Piattaforme</th><th>Stato</th><th>Errore</th></tr></thead>
+                <tbody id="history-body"></tbody>
+            </table>
+        </div>
+        <div id="history-empty" class="empty-state" style="display:none">
+            <div class="icon">📭</div>
+            <p>Nessun post nello storico</p>
+        </div>
+    </section>
+</main>
+
+<script>
+const API = '';
+const DT_OPTS = { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' };
+
+function fmtDate(iso) {
+    if (!iso) return '';
+    return new Date(iso).toLocaleString('it-IT', DT_OPTS);
+}
+
+function fmtDateForInput(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const dd = String(d.getDate()).padStart(2, '0');
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    return `${dd}/${mm}/${yyyy} ${hh}:${min}`;
+}
+
+function parseItalianDate(str) {
+    const m = str.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const [, dd, mm, yyyy, hh, min] = m;
+    const d = new Date(parseInt(yyyy), parseInt(mm) - 1, parseInt(dd), parseInt(hh), parseInt(min));
+    if (isNaN(d.getTime())) return null;
+    return d.toISOString();
+}
+
+// ---- Navigation ----
+function showSection(name) {
+    document.querySelectorAll('section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+    document.getElementById('sec-' + name).classList.add('active');
+    document.querySelector(`nav button[onclick="showSection('${name}')"]`).classList.add('active');
+
+    if (name === 'dashboard') loadDashboard();
+    else if (name === 'create') loadThemes();
+    else if (name === 'preview') loadPreview();
+    else if (name === 'history') loadHistory();
+}
+
+// ---- Toast ----
+function toast(msg, type = 'info') {
+    const el = document.createElement('div');
+    el.className = 'toast toast-' + type;
+    el.textContent = msg;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+}
+
+// ---- Loading overlay ----
+function showLoading(msg = 'Generazione in corso...') {
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay';
+    overlay.id = 'loading-overlay';
+    overlay.innerHTML = `<div class="spinner"></div><p>${msg}</p>`;
+    document.body.appendChild(overlay);
+}
+function hideLoading() {
+    const el = document.getElementById('loading-overlay');
+    if (el) el.remove();
+}
+
+// ---- API helpers ----
+async function api(path, opts = {}) {
+    const res = await fetch(API + path, {
+        headers: { 'Content-Type': 'application/json' },
+        ...opts,
+    });
+    if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: res.statusText }));
+        throw new Error(err.detail || 'API Error');
+    }
+    return res.json();
+}
+
+// ---- Themes ----
+let themesLoaded = false;
+async function loadThemes() {
+    if (themesLoaded) return;
+    try {
+        const data = await api('/api/posts/themes');
+        const sel = document.getElementById('gen-theme');
+        sel.innerHTML = '';
+        (data.available || []).forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id;
+            opt.textContent = t.name;
+            if (t.id === data.current.id) opt.selected = true;
+            sel.appendChild(opt);
+        });
+        themesLoaded = true;
+    } catch (e) {
+        toast('Errore caricamento temi: ' + e.message, 'error');
+    }
+}
+
+// ---- Dashboard ----
+async function loadDashboard() {
+    try {
+        const data = await api('/api/posts');
+        const posts = data.posts || [];
+        const counts = { draft: 0, approved: 0, scheduled: 0, published: 0 };
+        posts.forEach(p => { if (counts[p.status] !== undefined) counts[p.status]++; });
+
+        document.getElementById('count-draft').textContent = counts.draft;
+        document.getElementById('count-approved').textContent = counts.approved;
+        document.getElementById('count-scheduled').textContent = counts.scheduled;
+        document.getElementById('count-published').textContent = counts.published;
+
+        const scheduled = posts
+            .filter(p => p.status === 'scheduled')
+            .sort((a, b) => new Date(a.scheduled_at) - new Date(b.scheduled_at))
+            .slice(0, 5);
+
+        const container = document.getElementById('upcoming-list');
+        if (!scheduled.length) {
+            container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nessun post programmato</p></div>';
+            return;
+        }
+        container.innerHTML = scheduled.map(p => renderPostCard(p, false)).join('');
+    } catch (e) {
+        toast('Errore caricamento dashboard: ' + e.message, 'error');
+    }
+}
+
+// ---- Generate ----
+async function generatePosts() {
+    const count = parseInt(document.getElementById('gen-count').value) || 1;
+    const ig = document.getElementById('plat-ig').checked;
+    const fb = document.getElementById('plat-fb').checked;
+    const theme = document.getElementById('gen-theme').value || null;
+
+    if (!ig && !fb) { toast('Seleziona almeno una piattaforma', 'error'); return; }
+
+    let platforms = 'both';
+    if (ig && !fb) platforms = 'instagram';
+    else if (!ig && fb) platforms = 'facebook';
+
+    const btn = document.getElementById('btn-generate');
+    btn.disabled = true;
+    showLoading(`Genero ${count} post con AI...`);
+
+    try {
+        const data = await api('/api/posts/generate', {
+            method: 'POST',
+            body: JSON.stringify({ count, platforms, theme }),
+        });
+        toast(`${data.generated} post generati con successo!`, 'success');
+        hideLoading();
+        btn.disabled = false;
+        showSection('preview');
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+        hideLoading();
+        btn.disabled = false;
+    }
+}
+
+// ---- Preview ----
+async function loadPreview() {
+    const status = document.getElementById('filter-preview-status').value;
+    const qs = status ? `?status=${status}` : '';
+    try {
+        const data = await api('/api/posts' + qs);
+        const grid = document.getElementById('preview-grid');
+        if (!data.posts.length) {
+            grid.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>Nessun post trovato</p></div>';
+            return;
+        }
+        grid.innerHTML = data.posts.map(p => renderPostCard(p, true)).join('');
+    } catch (e) {
+        toast('Errore caricamento: ' + e.message, 'error');
+    }
+}
+
+function splitCaption(text, maxChars = 220) {
+    if (!text) return [''];
+    text = text.trim();
+    if (text.length <= maxChars) return [text];
+
+    const sentences = text.match(/[^.!?]*[.!?]+/g);
+    if (!sentences) return [text];
+
+    const pages = [];
+    let current = '';
+
+    for (const raw of sentences) {
+        const s = raw.trim();
+        if (!s) continue;
+        const candidate = current ? current + ' ' + s : s;
+
+        if (candidate.length > maxChars && current) {
+            pages.push(current.trim());
+            current = s;
+        } else {
+            current = candidate;
+        }
+    }
+    if (current.trim()) {
+        let last = current.trim();
+        if (!/[.!?]$/.test(last)) last += '.';
+        pages.push(last);
+    }
+
+    return pages.length ? pages : [text];
+}
+
+function renderPostCard(post, showActions = true) {
+    const imgSrc = post.image_path ? `/images/${post.image_path}` : '';
+    const badgeClass = 'badge-' + post.status;
+    const caption = post.caption || '';
+    const hashtags = escapeHtml(post.hashtags || '');
+    const scheduledDt = fmtDate(post.scheduled_at);
+    const createdDt = fmtDate(post.created_at);
+    const uid = 'slider-' + post.id;
+
+    const pages = splitCaption(caption, 220);
+    const slidesHtml = pages.map(pg =>
+        `<div class="slide"><span class="slide-text">${escapeHtml(pg)}</span></div>`
+    ).join('');
+
+    const multi = pages.length > 1;
+    const dotsHtml = multi
+        ? `<div class="slide-nav">${pages.map((_, i) => `<span class="dot${i === 0 ? ' active' : ''}" data-idx="${i}"></span>`).join('')}</div>`
+        : '';
+    const arrowsHtml = multi
+        ? `<button class="slide-arrow arrow-left" onclick="slideNav('${uid}',-1)">&#8249;</button><button class="slide-arrow arrow-right" onclick="slideNav('${uid}',1)">&#8250;</button>`
+        : '';
+    const pageLabel = multi
+        ? `<span class="page-label" id="${uid}-lbl">1 / ${pages.length}</span>`
+        : '';
+    const bgImgTag = imgSrc
+        ? `<img class="bg-img" src="${imgSrc}" alt="Post image" loading="lazy">`
+        : '';
+
+    const previewHtml = `
+        <div class="post-preview">
+            ${bgImgTag}
+            <div class="slide-track" id="${uid}">${slidesHtml}</div>
+            ${dotsHtml}
+            ${arrowsHtml}
+            ${pageLabel}
+        </div>`;
+
+    let actions = '';
+    if (showActions && (post.status === 'draft' || post.status === 'approved')) {
+        const schedVal = fmtDateForInput(post.scheduled_at);
+        actions = `
+        <div class="schedule-row">
+            <input type="text" id="sched-${post.id}" placeholder="GG/MM/AAAA HH:MM" value="${schedVal}">
+        </div>
+        <div class="card-actions">
+            <button class="btn btn-orange btn-sm" onclick="publishNow(${post.id})">⚡ Pubblica ora</button>
+            <button class="btn btn-green btn-sm" onclick="approveAndSchedule(${post.id})">📅 Programma</button>
+            <button class="btn btn-outline btn-sm" onclick="regenerateText(${post.id})">✎ Testo</button>
+            <button class="btn btn-outline btn-sm" onclick="regenerateImage(${post.id})">🖼 Immagine</button>
+            <button class="btn btn-red btn-sm" onclick="deletePost(${post.id})">✕ Elimina</button>
+        </div>`;
+    } else if (showActions && post.status === 'scheduled') {
+        actions = `
+        <div class="card-actions">
+            <button class="btn btn-outline btn-sm" onclick="unschedulePost(${post.id})">↩ Annulla</button>
+            <button class="btn btn-red btn-sm" onclick="deletePost(${post.id})">✕ Elimina</button>
+        </div>`;
+    }
+
+    return `
+    <div class="post-card" id="post-card-${post.id}">
+        ${previewHtml}
+        <div class="card-body">
+            <div class="hashtags">${hashtags}</div>
+            <div class="meta-row">
+                <span class="badge ${badgeClass}">${post.status}</span>
+                <span>${post.platforms}</span>
+                <span>Creato: ${createdDt}</span>
+                ${scheduledDt ? `<span>📅 ${scheduledDt}</span>` : ''}
+            </div>
+            ${actions}
+        </div>
+    </div>`;
+}
+
+function slideNav(uid, dir) {
+    const track = document.getElementById(uid);
+    if (!track) return;
+    const slideW = track.clientWidth;
+    const maxIdx = track.children.length - 1;
+    const curIdx = Math.round(track.scrollLeft / slideW);
+    const newIdx = Math.max(0, Math.min(maxIdx, curIdx + dir));
+    track.scrollTo({ left: newIdx * slideW, behavior: 'smooth' });
+    updateSliderUI(uid, newIdx, maxIdx + 1);
+}
+
+function updateSliderUI(uid, idx, total) {
+    const preview = document.getElementById(uid)?.closest('.post-preview');
+    if (!preview) return;
+    preview.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+    const lbl = document.getElementById(uid + '-lbl');
+    if (lbl) lbl.textContent = `${idx + 1} / ${total}`;
+}
+
+document.addEventListener('click', (e) => {
+    const dot = e.target.closest('.dot');
+    if (!dot) return;
+    const preview = dot.closest('.post-preview');
+    if (!preview) return;
+    const track = preview.querySelector('.slide-track');
+    if (!track) return;
+    const idx = parseInt(dot.dataset.idx);
+    const w = track.firstElementChild ? track.firstElementChild.offsetWidth : track.clientWidth;
+    track.scrollTo({ left: idx * w, behavior: 'smooth' });
+    updateSliderUI(track.id, idx, track.children.length);
+});
+
+// ---- Post actions ----
+async function publishNow(id) {
+    if (!confirm('Vuoi pubblicare subito questo post su Facebook e Instagram?')) return;
+    showLoading('Pubblicazione in corso...');
+    try {
+        const result = await api(`/api/posts/${id}/publish-now`, { method: 'POST' });
+        if (result.status === 'published') {
+            toast('Post pubblicato con successo!', 'success');
+        } else {
+            toast('Errore: ' + (result.error_message || 'Pubblicazione fallita'), 'error');
+        }
+        loadPreview();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+    hideLoading();
+}
+
+async function approveAndSchedule(id) {
+    const input = document.getElementById('sched-' + id);
+    if (!input || !input.value.trim()) {
+        toast('Inserisci data e ora nel formato GG/MM/AAAA HH:MM', 'error');
+        return;
+    }
+    const iso = parseItalianDate(input.value);
+    if (!iso) {
+        toast('Formato non valido. Usa: GG/MM/AAAA HH:MM (es. 15/03/2026 18:00)', 'error');
+        return;
+    }
+    try {
+        await api(`/api/posts/${id}/approve`, { method: 'PUT' });
+        await api(`/api/posts/${id}/schedule`, {
+            method: 'PUT',
+            body: JSON.stringify({ scheduled_at: iso }),
+        });
+        toast('Post approvato e programmato!', 'success');
+        loadPreview();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+}
+
+async function regenerateText(id) {
+    showLoading('Rigenero il testo...');
+    try {
+        await api(`/api/posts/${id}/regenerate-text`, { method: 'POST' });
+        toast('Testo rigenerato!', 'success');
+        loadPreview();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+    hideLoading();
+}
+
+async function regenerateImage(id) {
+    showLoading('Rigenero l\'immagine...');
+    try {
+        await api(`/api/posts/${id}/regenerate-image`, { method: 'POST' });
+        toast('Immagine rigenerata!', 'success');
+        loadPreview();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+    hideLoading();
+}
+
+async function deletePost(id) {
+    if (!confirm('Sei sicuro di voler eliminare questo post?')) return;
+    try {
+        await api(`/api/posts/${id}`, { method: 'DELETE' });
+        toast('Post eliminato', 'info');
+        const card = document.getElementById('post-card-' + id);
+        if (card) card.remove();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+}
+
+async function unschedulePost(id) {
+    try {
+        await api(`/api/schedule/${id}`, { method: 'DELETE' });
+        toast('Programmazione annullata', 'info');
+        loadPreview();
+    } catch (e) {
+        toast('Errore: ' + e.message, 'error');
+    }
+}
+
+// ---- History ----
+async function loadHistory() {
+    const status = document.getElementById('filter-hist-status').value;
+    let qs = '?status=published';
+    if (status === 'failed') qs = '?status=failed';
+    else if (status === '') qs = '';
+
+    try {
+        const data = await api('/api/posts' + qs);
+        const posts = (data.posts || []).filter(p => ['published', 'failed'].includes(p.status));
+        const tbody = document.getElementById('history-body');
+        const empty = document.getElementById('history-empty');
+
+        if (!posts.length) {
+            tbody.innerHTML = '';
+            empty.style.display = 'block';
+            return;
+        }
+        empty.style.display = 'none';
+        tbody.innerHTML = posts.map(p => {
+            const dt = fmtDate(p.published_at) || fmtDate(p.created_at) || '-';
+            const img = p.image_path ? `<img src="/images/${p.image_path}">` : '-';
+            const caption = escapeHtml((p.caption || '').slice(0, 80)) + (p.caption && p.caption.length > 80 ? '...' : '');
+            const badgeClass = 'badge-' + p.status;
+            const error = p.error_message ? escapeHtml(p.error_message.slice(0, 60)) : '-';
+            return `<tr>
+                <td>${dt}</td>
+                <td>${img}</td>
+                <td>${caption}</td>
+                <td>${p.platforms}</td>
+                <td><span class="badge ${badgeClass}">${p.status}</span></td>
+                <td style="font-size:.8rem;color:var(--red)">${error}</td>
+            </tr>`;
+        }).join('');
+    } catch (e) {
+        toast('Errore caricamento storico: ' + e.message, 'error');
+    }
+}
+
+// ---- Helpers ----
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ---- Auto-refresh dashboard every 30s ----
+setInterval(() => {
+    if (document.getElementById('sec-dashboard').classList.contains('active')) {
+        loadDashboard();
+    }
+}, 30000);
+
+// ---- Init ----
+loadDashboard();
+loadThemes();
+</script>
+</body>
+</html>

@@ -1,0 +1,33 @@
+# Ambiente virtuale
+.venv/
+venv/
+env/
+
+# Variabili d'ambiente (contiene API key!)
+.env
+
+# Database
+*.db
+*.db-journal
+
+# Immagini generate
+generated_images/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
